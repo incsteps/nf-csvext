@@ -1,0 +1,21 @@
+= nf-csvext
+Jorge Aguilera <jorge@incsteps.com>
+:toc: left
+:imagesdir: images
+
+== Install
+
+To install the plugin, simply add the plugin into your `nextflow.config`
+
+.nextflow.config
+[source]
+----
+plugins {
+    id "nf-csvext@0.1.0"
+}
+----
+
+Once installed the plugin povides several csv `functions`
+
+== csv_concat
+

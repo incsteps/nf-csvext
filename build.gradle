@@ -1,0 +1,33 @@
+plugins {
+    id 'org.asciidoctor.jvm.convert' version '3.3.2'
+    id 'io.nextflow.nextflow-plugin' version '1.0.0-beta.9'
+}
+
+test {
+    useJUnitPlatform()
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+}
+
+asciidoctor{
+
+    resources {
+        from('src/docs/asciidoc/images') {
+            include '**/*.png'
+        }
+
+        into './images'
+    }
+}
+
+
+nextflowPlugin {
+    nextflowVersion = "${nextflowVersion}"
+
+    description = 'A plugin with several csv functions utilities'
+    provider = "Incremental Steps"
+    className = 'incsteps.plugin.NfCsvextPlugin'
+    extensionPoints = [
+            'incsteps.plugin.NfCsvextExtension',
+    ]
+
+}
