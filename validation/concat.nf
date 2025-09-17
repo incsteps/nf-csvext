@@ -6,7 +6,10 @@ csv_file = file(params.input)
 
 workflow {
 
-    def out = csv_concat(csv_file, file(params.concat))
-
-    Channel.fromPath(out) | splitCsv(header:true)| view
+    Channel.fromPath( params.input)
+        | map{ source ->
+            csv_concat( source, file(params.concat), header:true )
+        }
+        | splitCsv(header:true)
+        | view
 }

@@ -19,3 +19,35 @@ Once installed the plugin povides several csv `functions`
 
 == csv_concat
 
+Concat two CSV files. If a header is specified, it validates both files have the same size and doesn't output
+the header of the second file
+
+Example:
+
+[source]
+----
+include { csv_concat } from 'plugin/nf-csvext'
+
+params.input = 'data/names.csv'
+params.concat = 'data/concat_names.csv'
+csv_file = file(params.input)
+
+workflow {
+
+    Channel.fromPath( params.input)
+        | map{ source ->
+            csv_concat( source, file(params.concat), header:true )
+        }
+        | splitCsv(header:true)
+        | view
+}
+----
+
+if `params.input` and `params.concat are both a csv with `name`, `birthdate`, `quote`
+, with one line everyone, them the output will be:
+
+[source]
+----
+[name:Albert Einstein, birtdhay:14 de marzo de 1879, quote:"La imaginación es más importante que el conocimiento."]
+[name:Rosa Parks, birthday:4 de febrero de 1913, quote:"Cada persona debe vivir su vida como un modelo para los demás."]
+----
