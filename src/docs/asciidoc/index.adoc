@@ -19,8 +19,8 @@ Once installed the plugin povides several csv `functions`
 
 == csv_concat
 
-Concat two CSV files. If a header is specified, it validates both files have the same size and doesn't output
-the header of the second file
+Concat two (or more) CSV files. If a header is specified, it validates files have the same size and doesn't output
+the header of the appended file(s)
 
 Example:
 
@@ -50,4 +50,24 @@ if `params.input` and `params.concat are both a csv with `name`, `birthdate`, `q
 ----
 [name:Albert Einstein, birtdhay:14 de marzo de 1879, quote:"La imaginación es más importante que el conocimiento."]
 [name:Rosa Parks, birthday:4 de febrero de 1913, quote:"Cada persona debe vivir su vida como un modelo para los demás."]
+----
+
+To append more than one file to `source` use a List as second arguments:
+
+`csv_concat( source, [ file(params.concat), file(params.another_file) ], header:true )`
+
+== csv_sort
+
+Sort a CSV by a column index and return a new file
+
+[source]
+----
+workflow {
+   Channel.fromPath( params.input )
+        | map{ source ->
+            csv_sort( source, column: 2)
+        }
+        | splitCsv(header:true)
+        | view
+}
 ----
