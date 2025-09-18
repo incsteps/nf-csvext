@@ -91,7 +91,7 @@ class CsvSort {
             return idx
         }else{
             for(int idx=0; idx < headerColumns.size(); idx++){
-                if( headerColumns[idx] == columnIndex){
+                if( headerColumns[idx].equalsIgnoreCase(columnIndex) ){
                     return idx
                 }
             }

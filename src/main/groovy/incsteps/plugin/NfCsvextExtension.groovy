@@ -63,6 +63,6 @@ class NfCsvextExtension extends PluginExtensionPoint {
     Path csv_sort(Map params=[:], Path source) {
         CsvSort.sortCSVByColumn(source,
                 params.containsKey("column") ? params.column.toString().trim() : "0",
-                params.containsKey("sep") ? params.sep.toString().trim() : ",")
+                params.containsKey("sep") ? params.sep.toString() : ",")
     }
 }
