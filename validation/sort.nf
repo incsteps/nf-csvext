@@ -25,17 +25,22 @@ Path generateRandom(){
     f
 }
 
+def start = 0
+def end = 0
 workflow {
-
     def input = generateRandom()
 
     Channel.fromPath( input )
         | map{ source ->
-            def start = System.currentTimeMillis()
+            start = System.currentTimeMillis()
             def out = csv_sort( source, column:params.sort)
-            def end = System.currentTimeMillis()
-            println String.format("tooks %04.02f seconds to sort %d rows", (end-start)/1000 as float, params.rows)
+            end = System.currentTimeMillis()
             out
         }
+        | splitCsv(header:true)
         | view
+}
+
+workflow.onComplete{
+    println String.format("tooks %04.02f seconds to sort %d rows", (end-start)/1000 as float, params.rows)
 }

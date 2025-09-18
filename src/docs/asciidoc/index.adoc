@@ -17,12 +17,25 @@ plugins {
 
 Once installed the plugin povides several csv `functions`
 
+== General specifications
+
+Most of the functions will follow the `csv_xxxx` pattern, where `xxxx` will describe the intent of the
+function as for example `csv_sort` will sort a CSV by an specified column
+
+Functions will accept a `file` as first argument as the csv `source` , except creation functions
+
+Most functions will accept an optional `Map` as last arguments. In this map you can provide details
+about the operacion. For example, you can provide the `sep` entry to specify the separator, or
+`header` to indicate if the header need to be processed
+
 == csv_concat
 
-Concat two (or more) CSV files. If a header is specified, it validates files have the same size and doesn't output
-the header of the appended file(s)
+Concat two (or more) CSV files.
 
-Example:
+If a header is specified, it validates that files have the same size. Appended file(s) will not output
+their header
+
+=== Example
 
 [source]
 ----
@@ -52,22 +65,25 @@ if `params.input` and `params.concat are both a csv with `name`, `birthdate`, `q
 [name:Rosa Parks, birthday:4 de febrero de 1913, quote:"Cada persona debe vivir su vida como un modelo para los demás."]
 ----
 
+=== File collection
+
 To append more than one file to `source` use a List as second arguments:
 
 `csv_concat( source, [ file(params.concat), file(params.another_file) ], header:true )`
 
 == csv_sort
 
-Sort a CSV by a column index and return a new file
+Sort a CSV by a column index (or name) and return a new file
 
 [source]
 ----
 workflow {
    Channel.fromPath( params.input )
         | map{ source ->
-            csv_sort( source, column: 2)
+            csv_sort( source, column: 2) //<1>
         }
         | splitCsv(header:true)
         | view
 }
 ----
+<1> Column can be an integer or a String. In this case, must be a column name present in the first row

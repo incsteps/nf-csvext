@@ -24,7 +24,7 @@ class CsvSort {
     }
 
 
-    static Path sortCSVByColumn(Path inputPath, int columnIndex, int chunkSize = DEFAULT_CHUNK_SIZE) {
+    static Path sortCSVByColumn(Path inputPath, String sortBy, String sep=",", int chunkSize = DEFAULT_CHUNK_SIZE) {
 
         def outputPath = createOutputPath()
         def tempFiles = [] as List<File>
@@ -34,14 +34,15 @@ class CsvSort {
             def lineCount = 0
             def chunk = [] as List<String>
 
-            // Fase 1: Dividir en chunks y ordenar cada uno
+            int columnIndex = -1
+
             inputPath.toFile().withReader { reader ->
                 header = reader.readLine()
                 if (!header) {
                     throw new IllegalArgumentException("El archivo CSV está vacío")
                 }
 
-                validateColumnIndex(header, columnIndex)
+                columnIndex = validateColumnIndex(header, sortBy, sep)
 
                 def line
                 while ((line = reader.readLine()) != null) {
@@ -49,7 +50,7 @@ class CsvSort {
                     lineCount++
 
                     if (lineCount >= chunkSize) {
-                        def tempFile = createSortedTempFile(chunk, columnIndex)
+                        def tempFile = createSortedTempFile(chunk, columnIndex, sep)
                         tempFiles << tempFile
 
                         chunk.clear()
@@ -57,15 +58,13 @@ class CsvSort {
                     }
                 }
 
-                // Procesar último chunk
                 if (chunk) {
-                    def tempFile = createSortedTempFile(chunk, columnIndex)
+                    def tempFile = createSortedTempFile(chunk, columnIndex, sep)
                     tempFiles << tempFile
                 }
             }
 
-            // Fase 2: Merge de archivos temporales
-            mergeFiles(tempFiles, outputPath, header, columnIndex)
+            mergeFiles(tempFiles, outputPath, header, columnIndex, sep)
 
             return outputPath
 
@@ -82,28 +81,38 @@ class CsvSort {
         return result
     }
 
-    private static void validateColumnIndex(String header, int columnIndex) {
-        def headerColumns = parseCsvLine(header)
-        if (columnIndex < 0 || columnIndex >= headerColumns.size()) {
-            throw new IllegalArgumentException("Índice de columna inválido: ${columnIndex}. El archivo tiene ${headerColumns.size()} columnas.")
+    private static int validateColumnIndex(String header, String columnIndex, String sep) {
+        def headerColumns = parseCsvLine(header, sep)*.trim()
+        if( columnIndex.isInteger() ) {
+            int idx = columnIndex as int
+            if (idx < 0 || idx >= headerColumns.size()) {
+                throw new IllegalArgumentException("Invalid column index ${columnIndex}")
+            }
+            return idx
+        }else{
+            for(int idx=0; idx < headerColumns.size(); idx++){
+                if( headerColumns[idx] == columnIndex){
+                    return idx
+                }
+            }
+            throw new IllegalArgumentException("Invalid column index ${columnIndex}")
         }
     }
 
-    private static File createSortedTempFile(List<String> lines, int columnIndex) {
-        // Ordenar chunk en memoria
-        lines.sort { line1, line2 -> compareLines(line1, line2, columnIndex) }
+    private static File createSortedTempFile(List<String> lines, int columnIndex, String sep) {
 
-        // Crear archivo temporal
-        def tempFile = File.createTempFile(TEMP_PREFIX, ".csv")
+        lines.sort { line1, line2 -> compareLines(line1, line2, columnIndex, sep) }
+
+        def tempFile = Files.createTempFile(Path.of(System.getenv('NXF_TEMP') ?: "/tmp"), TEMP_PREFIX, ".csv")
         tempFile.withWriter { writer ->
             lines.each { writer.println(it) }
         }
 
-        return tempFile
+        return tempFile.toFile()
     }
 
 
-    private static void mergeFiles(List<File> tempFiles, Path outputPath, String header, int columnIndex) {
+    private static void mergeFiles(List<File> tempFiles, Path outputPath, String header, int columnIndex, String sep) {
         if (!tempFiles) {
             throw new IllegalArgumentException("No hay archivos temporales para fusionar")
         }
@@ -120,7 +129,7 @@ class CsvSort {
         // Merge con priority queue
         def readers = [] as List<BufferedReader>
         def pq = new PriorityQueue<FileLineEntry>({FileLineEntry a, FileLineEntry b ->
-            compareLines(a.line, b.line, columnIndex)
+            compareLines(a.line, b.line, columnIndex, sep)
         } as Comparator<FileLineEntry>)
 
         try {
@@ -161,26 +170,16 @@ class CsvSort {
         }
     }
 
-    private static int compareLines(String line1, String line2, int columnIndex) {
-        def cols1 = parseCsvLine(line1)
-        def cols2 = parseCsvLine(line2)
-
-        if (cols1.size() <= columnIndex || cols2.size() <= columnIndex) {
-            return 0
-        }
+    private static int compareLines(String line1, String line2, int columnIndex, String sep) {
+        def cols1 = parseCsvLine(line1, sep)
+        def cols2 = parseCsvLine(line2, sep)
 
         def val1 = cols1[columnIndex]?.toString()?.trim() ?: ""
         def val2 = cols2[columnIndex]?.toString()?.trim() ?: ""
-
-        // Comparación numérica si es posible
-        try {
-            return val1.toDouble() <=> val2.toDouble()
-        } catch (NumberFormatException e) {
-            return val1.compareToIgnoreCase(val2)
-        }
+        return val1 <=> val2
     }
 
-    private static List<String> parseCsvLine(String line) {
+    private static List<String> parseCsvLine(String line, String sep) {
         def fields = [] as List<String>
         def inQuotes = false
         def currentField = new StringBuilder()
@@ -188,7 +187,7 @@ class CsvSort {
         line.chars.each { char c ->
             if (c == '"') {
                 inQuotes = !inQuotes
-            } else if (c == ',' && !inQuotes) {
+            } else if (c == sep && !inQuotes) {
                 fields << currentField.toString()
                 currentField = new StringBuilder()
             } else {
