@@ -28,6 +28,8 @@ Most functions will accept an optional `Map` as last arguments. In this map you 
 about the operacion. For example, you can provide the `sep` entry to specify the separator, or
 `header` to indicate if the header need to be processed
 
+In almost all situations, functions needs to store files in a temporary directory. For performance reasons, this directory is located in the machine’s local storage, and it should have enough free space. The tempDir option can be used to specify a different temporary directory.
+
 == csv_concat
 
 Concat two (or more) CSV files.
