@@ -24,6 +24,15 @@ class CsvSort {
     }
 
 
+    static Path csv_sort(Path source, String sortBy, String sep=",", int chunkSize = DEFAULT_CHUNK_SIZE) {
+
+        Path inputPath = Files.createTempFile(Path.of(System.getenv('NXF_TEMP') ?: "/tmp"), "tmp", "csv")
+        inputPath.bytes = source.bytes
+        inputPath.deleteOnExit()
+
+        sortCSVByColumn(inputPath, sortBy, sep, chunkSize)
+    }
+
     static Path sortCSVByColumn(Path inputPath, String sortBy, String sep=",", int chunkSize = DEFAULT_CHUNK_SIZE) {
 
         def outputPath = createOutputPath()
@@ -36,7 +45,7 @@ class CsvSort {
 
             int columnIndex = -1
 
-            inputPath.toFile().withReader { reader ->
+            inputPath.newInputStream().withReader { reader ->
                 header = reader.readLine()
                 if (!header) {
                     throw new IllegalArgumentException("El archivo CSV está vacío")
@@ -176,6 +185,11 @@ class CsvSort {
 
         def val1 = cols1[columnIndex]?.toString()?.trim() ?: ""
         def val2 = cols2[columnIndex]?.toString()?.trim() ?: ""
+
+        if( val1.isNumber() && val2.isNumber() ){
+            return val1.toFloat() <=> val2.toFloat()
+        }
+
         return val1 <=> val2
     }
 

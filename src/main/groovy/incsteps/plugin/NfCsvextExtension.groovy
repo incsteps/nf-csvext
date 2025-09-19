@@ -17,9 +17,18 @@
 package incsteps.plugin
 
 import groovy.transform.CompileStatic
+import groovyx.gpars.dataflow.DataflowReadChannel
+import groovyx.gpars.dataflow.DataflowWriteChannel
+import groovyx.gpars.dataflow.stream.DataflowStream
+import nextflow.Channel
 import nextflow.Session
+import nextflow.extension.CH
+import nextflow.extension.DataflowHelper
+import nextflow.plugin.extension.Factory
 import nextflow.plugin.extension.Function
+import nextflow.plugin.extension.Operator
 import nextflow.plugin.extension.PluginExtensionPoint
+import nextflow.util.ArrayBag
 
 import java.nio.file.Path
 
@@ -30,8 +39,11 @@ import java.nio.file.Path
 @CompileStatic
 class NfCsvextExtension extends PluginExtensionPoint {
 
+    private Session session
+
     @Override
     protected void init(Session session) {
+        this.session = session
     }
 
     /**
@@ -61,8 +73,27 @@ class NfCsvextExtension extends PluginExtensionPoint {
      */
     @Function
     Path csv_sort(Map params=[:], Path source) {
-        CsvSort.sortCSVByColumn(source,
+        CsvSort.csv_sort(source,
                 params.containsKey("column") ? params.column.toString().trim() : "0",
                 params.containsKey("sep") ? params.sep.toString() : ",")
     }
+
+    /**
+     * Trim column(s)
+     *
+     * @param target
+     */
+    @Function
+    Path csv_trim(Map params=[:], Path source) {
+        CsvTrim.csv_trim(params, source)
+    }
+
+    /**
+     * Create a CSV and consume the channel until stop
+     */
+    @Operator
+    DataflowWriteChannel csv_create( final DataflowReadChannel source, final Map map=[:], final Closure closure =null ){
+        new CsvCreateOp(source, map, closure).apply()
+    }
+
 }

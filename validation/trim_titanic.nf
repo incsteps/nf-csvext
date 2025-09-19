@@ -1,11 +1,11 @@
-include { csv_sort } from 'plugin/nf-csvext'
+include { csv_trim } from 'plugin/nf-csvext'
 
-params.sort = 'Cabin'
+params.trim = 'Cabin,Pclass'
 
 workflow {
     Channel.fromPath( 'https://raw.githubusercontent.com/incsteps/nf-csvext/refs/heads/main/validation/data/titanic.tsv' )
         | map{ source ->
-            csv_sort( source, column:params.sort, sep:'\t')
+            csv_trim( source, column:params.trim, sep:'\t')
         }
         | splitCsv(header:true, sep:'\t')
         | view

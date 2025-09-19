@@ -88,4 +88,56 @@ workflow {
         | view
 }
 ----
-<1> Column can be an integer or a String. In this case, must be a column name present in the first row
+<1> Column can be an integer or a String. In this case, must be a column name present in the headers
+
+== csv_trim
+
+Remove one or more columns from the CSV and return a new CSV
+
+[source]
+----
+include { csv_trim } from 'plugin/nf-csvext'
+
+params.trim = 'Cabin,Pclass'
+
+workflow {
+    Channel.fromPath( 'https://raw.githubusercontent.com/incsteps/nf-csvext/refs/heads/main/validation/data/titanic.tsv' )
+        | map{ source ->
+            csv_trim( source, columns:params.trim, sep:'\t')
+        }
+        | splitCsv(header:true, sep:'\t')
+        | view
+}
+----
+<1> Use `column` to remove a single column
+
+== csv_create (IN PROGRESS)
+
+A `csv_create` operator is provided similar to `collectFiles`. Once configured, every item received in the channel
+can be transformed and them the operator will emit a CSV
+
+[source]
+----
+include { csv_create } from 'plugin/nf-csvext'
+
+process foo {
+  input:
+  path x
+  output:
+  stdout
+  script:
+  """
+  echo foo;$x
+  """
+}
+
+workflow {
+  def ch = Channel.fromPath("$baseDir/data/*")
+  foo(ch)
+    .csv_create( [headers:'name,surname', sep:';'], { line->
+        line.toUpperCase()
+    })
+    | view
+}
+----
+
