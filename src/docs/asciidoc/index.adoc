@@ -5,7 +5,7 @@ Jorge Aguilera <jorge@incsteps.com>
 
 == Install
 
-To install the plugin, simply add the plugin into your `nextflow.config`
+To install the plugin, add the plugin into your `nextflow.config`
 
 .nextflow.config
 [source]
@@ -15,27 +15,43 @@ plugins {
 }
 ----
 
-Once installed the plugin povides several csv `functions`
+Once installed the plugin provides several csv `functions`
 
 == General specifications
 
 Most of the functions will follow the `csv_xxxx` pattern, where `xxxx` will describe the intent of the
-function as for example `csv_sort` will sort a CSV by an specified column
+function as for example `csv_sort` will emit a sorted CSV by a specified column
 
 Functions will accept a `file` as first argument as the csv `source` , except creation functions
 
-Most functions will accept an optional `Map` as last arguments. In this map you can provide details
-about the operacion. For example, you can provide the `sep` entry to specify the separator, or
-`header` to indicate if the header need to be processed
+Functions will accept an optional `Map` as last arguments. In this map, you can provide details
+about the operation. For example, you can provide the `sep` entry to specify the separator, or
+`header` to indicate if the header needs to be processed
 
-In almost all situations, functions needs to store files in a temporary directory. For performance reasons, this directory is located in the machine’s local storage, and it should have enough free space. The tempDir option can be used to specify a different temporary directory.
+In almost all situations, functions need to store files in a temporary directory. For performance reasons, this directory is located in the machine’s local storage, and it should have enough free space. The tempDir option can be used to specify a different temporary directory.
 
 == csv_concat
 
 Concat two (or more) CSV files.
 
-If a header is specified, it validates that files have the same size. Appended file(s) will not output
-their header
+If a header is specified, it validates these files have the same "header size" (but will not check if names are equals
+nor order)
+
+Appended file(s) will not output their header
+
+== Arguments
+
+- source, a Path
+- appends, a Path or a List<Path>
+- optional Map as params
+
+=== Params
+
+|===
+| key | type | description | default
+| header | boolean | if true concat compare files have the same numer fields in the header | false
+| sep | string | which char used as separator, for example ";" "\t" | ","
+|===
 
 === Example
 
@@ -75,7 +91,25 @@ To append more than one file to `source` use a List as second arguments:
 
 == csv_sort
 
-Sort a CSV by a column index (or name) and return a new file
+Emit a "sorted" CSV by a column index (or name)
+
+== Arguments
+
+- source, a Path
+- map as params
+
+INFO:: header parameter is implicit as it's required to know which column uses
+
+=== Params
+
+|===
+| key | type | description | default
+| column | number or string | specify the column name or index position (starting by 0) to use | "0"
+| sep | string | which char used as separator, for example ";" "\t" | ","
+|===
+
+
+=== Example
 
 [source]
 ----
@@ -92,7 +126,24 @@ workflow {
 
 == csv_trim
 
-Remove one or more columns from the CSV and return a new CSV
+Remove one or more columns from the CSV and produce a new CSV without these columns
+
+== Arguments
+
+- source, a Path
+- map as params
+
+INFO:: header parameter is implicit as it's required to know which column uses
+
+=== Params
+
+|===
+| key | type | description | default
+| column | number or string | specify the column name or index position (starting by 0) to use | "0"
+| sep | string | which char used as separator, for example ";" "\t" | ","
+|===
+
+=== Example
 
 [source]
 ----
@@ -103,7 +154,7 @@ params.trim = 'Cabin,Pclass'
 workflow {
     Channel.fromPath( 'https://raw.githubusercontent.com/incsteps/nf-csvext/refs/heads/main/validation/data/titanic.tsv' )
         | map{ source ->
-            csv_trim( source, columns:params.trim, sep:'\t')
+            csv_trim( source, columns:params.trim, sep:'\t') //<1>
         }
         | splitCsv(header:true, sep:'\t')
         | view
@@ -115,6 +166,9 @@ workflow {
 
 A `csv_create` operator is provided similar to `collectFiles`. Once configured, every item received in the channel
 can be transformed and them the operator will emit a CSV
+
+
+=== Example
 
 [source]
 ----
@@ -141,3 +195,7 @@ workflow {
 }
 ----
 
+This example will call a `foo` process as many times as files are present in `data` directory.
+
+The process will emit a val that the `csv_create` will append to the CSV. Once completed, it will emit the
+CSV
