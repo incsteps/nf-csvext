@@ -24,9 +24,9 @@ import org.pf4j.PluginWrapper
  * The plugin entry point
  */
 @CompileStatic
-class NfCsvextPlugin extends BasePlugin {
+class CSVPlugin extends BasePlugin {
 
-    NfCsvextPlugin(PluginWrapper wrapper) {
+    CSVPlugin(PluginWrapper wrapper) {
         super(wrapper)
     }
 }

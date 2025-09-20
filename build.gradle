@@ -25,9 +25,9 @@ nextflowPlugin {
 
     description = 'A plugin with several csv functions utilities'
     provider = "Incremental Steps"
-    className = 'incsteps.plugin.NfCsvextPlugin'
+    className = 'incsteps.plugin.CSVPlugin'
     extensionPoints = [
-            'incsteps.plugin.NfCsvextExtension',
+            'incsteps.plugin.CSVExtension',
     ]
 
 }

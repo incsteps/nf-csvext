@@ -33,9 +33,11 @@ class CsvCreateOp {
 
 
     protected processItem( item ) {
-        if(!headersEmitted){
-            String headerLine = headerFields.join(sep)
-            result.bind(headerLine)
+        if(!headersEmitted) {
+            if (headerFields.size()) {
+                String headerLine = headerFields.join(sep)
+                result.bind(headerLine)
+            }
             headersEmitted=true
         }
         if(closure){

@@ -19,16 +19,10 @@ package incsteps.plugin
 import groovy.transform.CompileStatic
 import groovyx.gpars.dataflow.DataflowReadChannel
 import groovyx.gpars.dataflow.DataflowWriteChannel
-import groovyx.gpars.dataflow.stream.DataflowStream
-import nextflow.Channel
 import nextflow.Session
-import nextflow.extension.CH
-import nextflow.extension.DataflowHelper
-import nextflow.plugin.extension.Factory
 import nextflow.plugin.extension.Function
 import nextflow.plugin.extension.Operator
 import nextflow.plugin.extension.PluginExtensionPoint
-import nextflow.util.ArrayBag
 
 import java.nio.file.Path
 
@@ -37,7 +31,7 @@ import java.nio.file.Path
  * Nextflow scripts.
  */
 @CompileStatic
-class NfCsvextExtension extends PluginExtensionPoint {
+class CSVExtension extends PluginExtensionPoint {
 
     private Session session
 
@@ -93,7 +87,7 @@ class NfCsvextExtension extends PluginExtensionPoint {
      */
     @Operator
     DataflowWriteChannel csv_create( final DataflowReadChannel source, final Map map=[:], final Closure closure =null ){
-        List<String> headers = map.headers as List<String>
+        List<String> headers = map.headers as List<String> ?: []
         String sep = map.sep ?: ","
         new CsvCreateOp(source, headers, sep, closure).apply()
     }
