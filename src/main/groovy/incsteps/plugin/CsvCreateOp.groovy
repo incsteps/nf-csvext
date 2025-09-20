@@ -10,39 +10,52 @@ class CsvCreateOp {
 
     private final Closure closure
 
-    private final Map params
-
     private DataflowWriteChannel result
 
     private DataflowReadChannel channel
 
-    CsvCreateOp(final DataflowReadChannel channel, Map params, final Closure closure = null ) {
+    final String sep
+    final List<String>headerFields
+    boolean headersEmitted = false
+
+    CsvCreateOp(final DataflowReadChannel channel, List<String>headerFields, String sep, final Closure closure = null ) {
         this.channel = channel
         this.result = CH.create()
-        this.params = params
         this.closure = closure
+        this.sep = sep
+        this.headerFields = headerFields
     }
 
-    List<String> data = []
-
     DataflowWriteChannel apply() {
-        DataflowHelper.subscribeImpl( channel, [onNext: this.&processItem, onComplete: this.&emitItems] )
+        DataflowHelper.subscribeImpl( channel, [onNext: this.&processItem, onComplete: this.&onComplete] )
         return result
     }
 
+
     protected processItem( item ) {
-        println "add to csv $item"
-        data << item
+        if(!headersEmitted){
+            String headerLine = headerFields.join(sep)
+            result.bind(headerLine)
+            headersEmitted=true
+        }
+        if(closure){
+            item = closure.call(item)
+        }
+        String line = "$item"
+        if( item instanceof List){
+            List list = (List)item
+            line = list.join(sep)
+        }else
+            if( item instanceof Map){
+                Map map = (Map)item
+                line = headerFields.collect{
+                    map[it] ?: ""
+                }.join(sep)
+            }
+        result.bind(line)
     }
 
-    protected emitItems( obj ) {
-        println "escupe"
-        data.each{d->
-            if( closure ){
-                d = closure.call(d)
-            }
-            result.bind(d)
-        }
+    protected onComplete( obj ) {
         result.bind(Channel.STOP)
     }
 }

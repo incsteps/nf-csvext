@@ -93,7 +93,9 @@ class NfCsvextExtension extends PluginExtensionPoint {
      */
     @Operator
     DataflowWriteChannel csv_create( final DataflowReadChannel source, final Map map=[:], final Closure closure =null ){
-        new CsvCreateOp(source, map, closure).apply()
+        List<String> headers = map.headers as List<String>
+        String sep = map.sep ?: ","
+        new CsvCreateOp(source, headers, sep, closure).apply()
     }
 
 }

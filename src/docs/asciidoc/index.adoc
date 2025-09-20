@@ -174,28 +174,24 @@ can be transformed and them the operator will emit a CSV
 ----
 include { csv_create } from 'plugin/nf-csvext'
 
-process foo {
-  input:
-  path x
-  output:
-  stdout
-  script:
-  """
-  echo foo;$x
-  """
-}
-
-workflow {
-  def ch = Channel.fromPath("$baseDir/data/*")
-  foo(ch)
-    .csv_create( [headers:'name,surname', sep:';'], { line->
-        line.toUpperCase()
-    })
-    | view
-}
+channel.fromList([
+    [id:1, name:'a name'],
+    [id:2, name:'b name'],
+    [id:3, name:'c name'],
+])
+    .csv_create( headers:['name','id','date'], sep:";"){ sequence->
+        sequence['date'] = new Date().toString()
+        sequence
+    }
+    .view()
 ----
 
-This example will call a `foo` process as many times as files are present in `data` directory.
+This example will produce a CSV with `name`, `id` and `date` fields
 
-The process will emit a val that the `csv_create` will append to the CSV. Once completed, it will emit the
-CSV
+As you can see, not only you can specify the order of the header but also modify every item using the closure.
+You can add, remove or transform every item
+
+If the item consumed is a List, the item emitted will be a concatenation of the elements using the `sep`
+
+If the item consumed is a Map, the item emitted will be a concatenation of the elements present in the map
+specified in the `header`. `sep` will be used as separator
