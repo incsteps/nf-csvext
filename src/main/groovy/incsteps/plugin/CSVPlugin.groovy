@@ -17,16 +17,37 @@
 package incsteps.plugin
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import nextflow.plugin.BasePlugin
 import org.pf4j.PluginWrapper
 
 /**
  * The plugin entry point
  */
+@Slf4j
 @CompileStatic
 class CSVPlugin extends BasePlugin {
 
     CSVPlugin(PluginWrapper wrapper) {
         super(wrapper)
+        showBanner()
+    }
+
+    static void showBanner() {
+        log.info(" ___                                             _        _ ")
+        log.info("|_ _|_ __   ___ _ __ ___ _ __ ___   ___ _ __  | |_ __ _| |")
+        log.info(" | || '_ \\ / __| '__/ _ \\ '_ ` _ \\ / _ \\ '_ \\ | __/ _` | |")
+        log.info(" | || | | | (__| | |  __/ | | | | |  __/ | | || | || (_| | |")
+        log.info("|___|_| |_|\\___|_|  \\___|_| |_| |_|\\___|_| |_||_| \\__|\\__,_|_|")
+        log.info("")
+        log.info("   ____  _                 ")
+        log.info("  / ___|| |_ ___ _ __  ___ ")
+        log.info("  \\___ \\| __/ _ \\ '_ \\/ __|")
+        log.info("   ___) | ||  __/ |_) \\__ \\")
+        log.info("  |____/ \\__\\___| .__/|___/")
+        log.info("                |_|        ")
+        log.info("")
+        log.info("  :: http://incsteps.com :: ")
+        log.info("")
     }
 }
