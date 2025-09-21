@@ -57,7 +57,12 @@ class CSVExtension extends PluginExtensionPoint {
      */
     @Function
     Path csv_concat(Map params=[:], Path source, List<Path> appends) {
-        CsvConcat.csv_concat(params, source, appends)
+        validateConcatArgs(params)
+        CsvConcat.csv_concat(source, appends, (params?.header ?: "false") as boolean, (params?.sep ?: ",").toString())
+    }
+
+    protected void validateConcatArgs(Map params){
+        //nothing by the moment
     }
 
     /**
@@ -79,7 +84,29 @@ class CSVExtension extends PluginExtensionPoint {
      */
     @Function
     Path csv_trim(Map params=[:], Path source) {
-        CsvTrim.csv_trim(params, source)
+        validateTrimArgs(params)
+
+        String sep = (params.sep ?: ",").toString()
+        List<String> columns = params.columns as List<String>
+        CsvTrim.csv_trim(source, columns, sep)
+    }
+
+    protected static void validateTrimArgs(Map params){
+        if( !params.containsKey("column") && !params.containsKey("columns") ) {
+            throw new IllegalArgumentException("Column(s) to trim are required")
+        }
+        if( params.containsKey("column") && params.containsKey("columns") ){
+            throw new IllegalArgumentException("Only column or columns must to be specified, not both")
+        }
+        if( params.containsKey("column") && params.column.toString().indexOf(",") != -1){
+            throw new IllegalArgumentException("Column argument can't be a list. Use instead `columns`")
+        }
+        if( params.containsKey("column") ){
+            params.columns = [params.column]
+        }
+        if( params.containsKey("columns") && !params.columns instanceof List){
+            params.columns = params.columns.toString().split(",")
+        }
     }
 
     /**

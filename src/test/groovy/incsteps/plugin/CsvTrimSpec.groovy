@@ -17,7 +17,7 @@ class CsvTrimSpec extends Specification{
             """.stripIndent())
 
         when:
-        def f2 = CsvTrim.csv_trim([column:'0'], f1)
+        def f2 = CsvTrim.csv_trim(f1,['0'],',')
 
         then:
         Files.readString(f2) == """\
@@ -28,7 +28,7 @@ class CsvTrimSpec extends Specification{
             """.stripIndent()
 
         when:
-        def f3 = CsvTrim.csv_trim([column:'surname'], f1)
+        def f3 = CsvTrim.csv_trim(f1,['surname'],',')
 
         then:
         Files.readString(f3) == """\
@@ -39,7 +39,7 @@ class CsvTrimSpec extends Specification{
             """.stripIndent()
 
         when:
-        def f4 = CsvTrim.csv_trim([columns:'0,surname'], f1)
+        def f4 = CsvTrim.csv_trim(f1,['0','surname'],',')
 
         then:
         Files.readString(f4) == """\

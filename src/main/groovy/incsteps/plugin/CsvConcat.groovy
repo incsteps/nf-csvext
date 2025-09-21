@@ -6,7 +6,7 @@ import java.nio.file.StandardOpenOption
 
 class CsvConcat {
 
-    static Path csv_concat(Map params=[:], Path source, List<Path> appends) {
+    static Path csv_concat(Path source, List<Path> appends, boolean header, String sep) {
 
         Path newSource = Files.createTempFile( Path.of(System.getenv('NXF_TEMP') ?: "/tmp"), "tmp", "csv")
         newSource.bytes = source.bytes
@@ -20,19 +20,19 @@ class CsvConcat {
         }
 
         newAppends.each {append->
-            validateInputs(newSource, append, params)
+            validateInputs(newSource, append, header, sep)
         }
         Path first = newAppends.removeFirst()
-        Path ret = concat(params, newSource, first)
+        Path ret = concat(newSource, first, header, sep)
         newAppends.each{ append->
-            ret = concat(params, ret, append)
+            ret = concat(ret, append, header, sep)
         }
         ret
     }
 
-    static private Path concat(Map params=[:], Path source, Path append) {
+    static private Path concat(Path source, Path append, boolean header, String sep) {
 
-        validateInputs(source, append, params)
+        validateInputs(source, append, header, sep)
 
         Path result =
                 Files.createTempFile( Path.of(System.getenv('NXF_TEMP') ?: "/tmp"), "tmp", "csv")
@@ -43,7 +43,7 @@ class CsvConcat {
             if( !line.endsWith("\n"))
                 Files.write(result, "\n".bytes, StandardOpenOption.APPEND)
         }
-        if( !params.containsKey('header') || !params.header as boolean) {
+        if( !header ) {
             Files.write(result, append.toFile().bytes, StandardOpenOption.APPEND)
         }else{
             def brAppend = new BufferedReader(new FileReader(append.toFile()))
@@ -58,15 +58,14 @@ class CsvConcat {
         result
     }
 
-    static void validateInputs(Path source, Path append, Map params=[:]){
-        if(params.containsKey('header') && params.header as boolean){
+    static void validateInputs(Path source, Path append, boolean header, String sep){
+        if(header){
             def brSource = new BufferedReader(source.newInputStream().newReader())
             def headerSource = brSource.readLine()
 
             def brAppend = new BufferedReader(append.newInputStream().newReader())
             def headerAppend = brAppend.readLine()
 
-            String sep = params.containsKey("sep") ? params.sep : ","
             if( headerSource.split(sep).size() != headerAppend.split(sep).size() ){
                 throw new IllegalArgumentException("source and append must to be same size")
             }

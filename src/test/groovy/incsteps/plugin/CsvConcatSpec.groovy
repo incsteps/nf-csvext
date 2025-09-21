@@ -14,12 +14,12 @@ class CsvConcatSpec extends Specification{
         Files.writeString(f2,"name,surname\nc,d")
 
         when:
-        def f3 = CsvConcat.csv_concat([:], f1, [f2])
+        def f3 = CsvConcat.csv_concat(f1, [f2], false, ",")
         then:
         Files.readAllLines(f3) == ["name,surname","a,b", "name,surname","c,d"]
 
         when:
-        def f4 = CsvConcat.csv_concat([header:true], f1, [f2])
+        def f4 = CsvConcat.csv_concat(f1, [f2], true, ",")
         then:
         Files.readAllLines(f4) == ["name,surname","a,b","c,d"]
 
@@ -40,7 +40,7 @@ class CsvConcatSpec extends Specification{
         Files.writeString(f3,"name,surname\ne,f")
 
         when:
-        def f4 = CsvConcat.csv_concat([header:true], f1, [f2,f3])
+        def f4 = CsvConcat.csv_concat(f1, [f2,f3], true, ",")
         then:
         Files.readAllLines(f4) == ["name,surname","a,b","c,d","e,f"]
 
@@ -59,12 +59,12 @@ class CsvConcatSpec extends Specification{
         Files.writeString(f2,"name\tsurname\nc\td")
 
         when:
-        def f3 = CsvConcat.csv_concat([:], f1, [f2])
+        def f3 = CsvConcat.csv_concat(f1, [f2], false, ",")
         then:
         Files.readAllLines(f3) == ["name\tsurname","a\tb", "name\tsurname","c\td"]
 
         when:
-        def f4 = CsvConcat.csv_concat([header:true], f1, [f2])
+        def f4 = CsvConcat.csv_concat(f1, [f2], true, ",")
         then:
         Files.readAllLines(f4) == ["name\tsurname","a\tb","c\td"]
 

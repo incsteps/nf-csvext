@@ -6,23 +6,15 @@ import java.nio.file.StandardOpenOption
 
 class CsvTrim {
 
-    static Path csv_trim(Map params=[:], Path source) {
+    static Path csv_trim(Path source, List<String>columns, String sep) {
         Path inputPath = Files.createTempFile(Path.of(System.getenv('NXF_TEMP') ?: "/tmp"), "tmp", "csv")
         inputPath.bytes = source.bytes
         inputPath.deleteOnExit()
 
-        csvTrim(params, inputPath)
+        csvTrim(source, columns, sep)
     }
 
-    static private Path csvTrim(Map params=[:], Path source) {
-        validateInputs(source, params)
-
-        List<String> columns = params.containsKey("column") ?
-                [params.column] as List<String>
-                :
-                params.columns.toString().split(",") as List<String>
-
-        String sep = (params.sep ?: ",").toString()
+    static private Path csvTrim(Path source, List<String>columns, String sep) {
 
         def positions = columnsToPositions(source, columns, sep)
 
@@ -47,12 +39,6 @@ class CsvTrim {
         }
 
         result
-    }
-
-    static void validateInputs(Path source, Map params=[:]) {
-        if (!params.containsKey("column") && !params.containsKey("columns")) {
-            throw new IllegalArgumentException("column(s) to trim are required")
-        }
     }
 
     static List<Integer> columnsToPositions(Path source, List<String>trim, String sep){

@@ -53,7 +53,7 @@ class CsvSort {
 
                 columnIndex = validateColumnIndex(header, sortBy, sep)
 
-                def line
+                String line = ""
                 while ((line = reader.readLine()) != null) {
                     chunk << line
                     lineCount++
