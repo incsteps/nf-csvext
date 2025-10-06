@@ -1,11 +1,13 @@
 package incsteps.plugin
 
+import groovy.transform.CompileStatic
 import groovyx.gpars.dataflow.DataflowReadChannel
 import groovyx.gpars.dataflow.DataflowWriteChannel
 import nextflow.Channel
 import nextflow.extension.CH
 import nextflow.extension.DataflowHelper
 
+@CompileStatic
 class CsvCreateOp {
 
     private final Closure closure
