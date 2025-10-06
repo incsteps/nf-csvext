@@ -1,9 +1,12 @@
 package incsteps.plugin
 
+import groovy.transform.CompileStatic
+
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
+@CompileStatic
 class CsvTrim {
 
     static Path csv_trim(Path source, List<String>columns, String sep) {

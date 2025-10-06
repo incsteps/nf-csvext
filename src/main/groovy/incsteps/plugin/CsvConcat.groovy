@@ -1,9 +1,12 @@
 package incsteps.plugin
 
+import groovy.transform.CompileStatic
+
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
+@CompileStatic
 class CsvConcat {
 
     static Path csv_concat(Path source, List<Path> appends, boolean header, String sep) {

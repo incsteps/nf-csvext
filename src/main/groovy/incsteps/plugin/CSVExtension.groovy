@@ -119,4 +119,14 @@ class CSVExtension extends PluginExtensionPoint {
         new CsvCreateOp(source, headers, sep, closure).apply()
     }
 
+    /**
+     * Generate a new CSV resizing columns
+     */
+    @Function
+    Path csv_prettyprint(Map params=[:], Path source){
+        String sep = params.sep ?: ","
+        String newSep = params.containsKey("newSep") ? params.newSep : sep
+        CsvPretty.pretty_csv(source, sep, newSep)
+    }
+
 }

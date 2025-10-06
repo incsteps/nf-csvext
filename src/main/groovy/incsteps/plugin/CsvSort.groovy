@@ -35,7 +35,7 @@ class CsvSort {
 
     static Path sortCSVByColumn(Path inputPath, String sortBy, String sep=",", int chunkSize = DEFAULT_CHUNK_SIZE) {
 
-        def outputPath = createOutputPath()
+        def outputPath = CsvCommon.createOutputPath()
         def tempFiles = [] as List<File>
 
         try {
@@ -84,14 +84,9 @@ class CsvSort {
         }
     }
 
-    private static Path createOutputPath() {
-        Path result =
-                Files.createTempFile( Path.of(System.getenv('NXF_TEMP') ?: "/tmp"), "tmp", "csv")
-        return result
-    }
 
     private static int validateColumnIndex(String header, String columnIndex, String sep) {
-        def headerColumns = parseCsvLine(header, sep)*.trim()
+        def headerColumns = CsvCommon.parseCsvLine(header, sep)*.trim()
         if( columnIndex.isInteger() ) {
             int idx = columnIndex as int
             if (idx < 0 || idx >= headerColumns.size()) {
@@ -180,8 +175,8 @@ class CsvSort {
     }
 
     private static int compareLines(String line1, String line2, int columnIndex, String sep) {
-        def cols1 = parseCsvLine(line1, sep)
-        def cols2 = parseCsvLine(line2, sep)
+        def cols1 = CsvCommon.parseCsvLine(line1, sep)
+        def cols2 = CsvCommon.parseCsvLine(line2, sep)
 
         def val1 = cols1[columnIndex]?.toString()?.trim() ?: ""
         def val2 = cols2[columnIndex]?.toString()?.trim() ?: ""
@@ -193,25 +188,7 @@ class CsvSort {
         return val1 <=> val2
     }
 
-    private static List<String> parseCsvLine(String line, String sep) {
-        def fields = [] as List<String>
-        def inQuotes = false
-        def currentField = new StringBuilder()
 
-        line.chars.each { char c ->
-            if (c == '"') {
-                inQuotes = !inQuotes
-            } else if (c == sep && !inQuotes) {
-                fields << currentField.toString()
-                currentField = new StringBuilder()
-            } else {
-                currentField.append(c)
-            }
-        }
-        fields << currentField.toString()
-
-        return fields
-    }
 
     private static void cleanupTempFiles(List<File> tempFiles) {
         tempFiles.each { file ->
